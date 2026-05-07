@@ -36,7 +36,7 @@ CXXFLAGS += -static-libgcc -static-libstdc++
 
 # Linker flags
 LDFLAGS  = -shared -Wl,--out-implib,$(TARGET:.dll=.a)
-LDLIBS   = -lwinhttp -lcomctl32 -lkernel32 -luser32
+LDLIBS   = -lwinhttp -lcomctl32 -lgdi32 -lkernel32 -luser32
 
 # MSVC build
 ifdef MSVC
@@ -45,7 +45,7 @@ ifdef MSVC
                /D"_WIN32_WINNT=0x0600" /DWIN32_LEAN_AND_MEAN \
                /W3 /MD /LD
     LDFLAGS  = /link /DLL /OUT:$(TARGET)
-    LDLIBS   = winhttp.lib comctl32.lib kernel32.lib user32.lib
+    LDLIBS   = winhttp.lib comctl32.lib gdi32.lib kernel32.lib user32.lib
 
     .cpp.obj:
         $(CC) /c $< $(CXXFLAGS)

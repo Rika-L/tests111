@@ -6,6 +6,7 @@
 #include <string>
 
 PRAGMA_COMMENT_LIB("comctl32.lib")
+PRAGMA_COMMENT_LIB("gdi32.lib")
 
 // DLL instance handle from dllmain.cpp
 extern HMODULE g_hInstance;
