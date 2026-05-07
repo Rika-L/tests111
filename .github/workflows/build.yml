@@ -44,7 +44,7 @@ jobs:
              /D"_WIN32_WINNT=0x0600" /DWIN32_LEAN_AND_MEAN ^
              /W3 /MD /LD ^
              /link /DLL /OUT:${{ env.PLUGIN_NAME }}.dll ^
-             winhttp.lib comctl32.lib kernel32.lib user32.lib
+             winhttp.lib comctl32.lib gdi32.lib kernel32.lib user32.lib
 
       - name: Upload DLL artifact
         uses: actions/upload-artifact@v4
@@ -78,7 +78,7 @@ jobs:
               -O2 -std=c++17 -shared -D_WIN32_WINNT=0x0600 ^
               -DWIN32_LEAN_AND_MEAN -DBUILD_DLL ^
               -static-libgcc -static-libstdc++ ^
-              -lwinhttp -lcomctl32 -lkernel32 -luser32 ^
+              -lwinhttp -lcomctl32 -lgdi32 -lkernel32 -luser32 ^
               -Wl,--out-implib,${{ env.PLUGIN_NAME }}.a
 
       - name: Upload DLL artifact
