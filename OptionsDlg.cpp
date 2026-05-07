@@ -134,7 +134,7 @@ INT_PTR COptionsDlg::HandleCommand(HWND hDlg, WPARAM wParam, LPARAM lParam)
 
         if (wcslen(buff) == 0)
         {
-            SetDlgItemTextW(hDlg, IDC_STATUS_TEXT, L"请输入 API Token");
+            SetDlgItemTextW(hDlg, IDC_STATUS_TEXT, L"\u8BF7\u8F93\u5165 API Token");
             return TRUE;
         }
 
@@ -142,7 +142,7 @@ INT_PTR COptionsDlg::HandleCommand(HWND hDlg, WPARAM wParam, LPARAM lParam)
         std::wstring saved_token = CDataManager::Instance().GetConfig().api_token;
         CDataManager::Instance().SetApiToken(buff);
 
-        SetDlgItemTextW(hDlg, IDC_STATUS_TEXT, L"正在测试连接...");
+        SetDlgItemTextW(hDlg, IDC_STATUS_TEXT, L"\u6B63\u5728\u6D4B\u8BD5\u8FDE\u63A5...");
 
         bool success = CDataManager::Instance().RefreshBalance();
 
@@ -151,19 +151,19 @@ INT_PTR COptionsDlg::HandleCommand(HWND hDlg, WPARAM wParam, LPARAM lParam)
             const auto& data = CDataManager::Instance().GetBalanceData();
             if (data.has_data)
             {
-                std::wstring msg = L"连接成功!\n余额: " +
+                std::wstring msg = L"\u8FDE\u63A5\u6210\u529F!\n\u4F59\u989D: " +
                     data.balance_info.total_balance + L" " +
                     data.balance_info.currency;
                 SetDlgItemTextW(hDlg, IDC_STATUS_TEXT, msg.c_str());
             }
             else
             {
-                SetDlgItemTextW(hDlg, IDC_STATUS_TEXT, L"连接成功，但解析响应失败");
+                SetDlgItemTextW(hDlg, IDC_STATUS_TEXT, L"\u8FDE\u63A5\u6210\u529F\uFF0C\u4F46\u89E3\u6790\u54CD\u5E94\u5931\u8D25");
             }
         }
         else
         {
-            SetDlgItemTextW(hDlg, IDC_STATUS_TEXT, L"连接失败，请检查 Token 和网络连接");
+            SetDlgItemTextW(hDlg, IDC_STATUS_TEXT, L"\u8FDE\u63A5\u5931\u8D25\uFF0C\u8BF7\u68C0\u67E5 Token \u548C\u7F51\u7EDC\u8FDE\u63A5");
         }
         return TRUE;
     }

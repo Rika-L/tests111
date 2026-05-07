@@ -40,7 +40,7 @@ jobs:
           cl dllmain.cpp DataManager.cpp DeepSeekBalanceItem.cpp ^
              DeepSeekBalancePlugin.cpp OptionsDlg.cpp ^
              ${{ env.PLUGIN_NAME }}.res ^
-             /O2 /std:c++17 /D"_USRDLL" /D"WIN32" /D"_WINDOWS" ^
+             /O2 /std:c++17 /utf-8 /D"_USRDLL" /D"WIN32" /D"_WINDOWS" ^
              /D"_WIN32_WINNT=0x0600" /DWIN32_LEAN_AND_MEAN ^
              /W3 /MD /LD ^
              /link /DLL /OUT:${{ env.PLUGIN_NAME }}.dll ^
@@ -77,6 +77,7 @@ jobs:
               OptionsDlg.cpp ${{ env.PLUGIN_NAME }}_res.o ^
               -O2 -std=c++17 -shared -D_WIN32_WINNT=0x0600 ^
               -DWIN32_LEAN_AND_MEAN -DBUILD_DLL ^
+              -finput-charset=utf-8 ^
               -static-libgcc -static-libstdc++ ^
               -lwinhttp -lcomctl32 -lgdi32 -lkernel32 -luser32 ^
               -Wl,--out-implib,${{ env.PLUGIN_NAME }}.a
