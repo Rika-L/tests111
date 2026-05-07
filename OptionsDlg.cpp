@@ -58,14 +58,28 @@ INT_PTR COptionsDlg::HandleInitDialog(HWND hDlg)
     m_hDlg = hDlg;
     const auto& config = CDataManager::Instance().GetConfig();
 
-    // Set API Token
+    // Set font FIRST so all subsequent text is rendered correctly.
+    // .rc now uses UTF-16LE with Segoe UI, but explicitly setting the
+    // font here provides a safety net for windres builds.
+    m_hFont = CreateFontW(-9, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+        DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
+    if (m_hFont)
+    {
+        SendMessage(hDlg, WM_SETFONT, (WPARAM)m_hFont, MAKELPARAM(TRUE, 0));
+        HWND hChild = GetWindow(hDlg, GW_CHILD);
+        while (hChild)
+        {
+            SendMessage(hChild, WM_SETFONT, (WPARAM)m_hFont, MAKELPARAM(TRUE, 0));
+            hChild = GetWindow(hChild, GW_HWNDNEXT);
+        }
+    }
+
+    // Set saved values
     SetDlgItemTextW(hDlg, IDC_API_TOKEN_EDIT, config.api_token.c_str());
-
-    // Set API URL
     SetDlgItemTextW(hDlg, IDC_API_URL_EDIT, config.api_url.c_str());
-
-    // Set refresh interval
     SetDlgItemInt(hDlg, IDC_REFRESH_INTERVAL_EDIT, config.refresh_interval_sec / 60, FALSE);
+
     // Spin control range
     HWND hSpin = GetDlgItem(hDlg, IDC_REFRESH_INTERVAL_SPIN);
     if (hSpin)
@@ -74,28 +88,12 @@ INT_PTR COptionsDlg::HandleInitDialog(HWND hDlg)
         SendMessage(hSpin, UDM_SETPOS32, 0, config.refresh_interval_sec / 60);
     }
 
-    // Set Chinese UI text (text in .rc is ASCII to avoid encoding issues)
+    // Chinese text is now set directly in .rc (UTF-16LE).
+    // The calls below serve as fallback for any build toolchain that
+    // doesn't handle the UTF-16LE .rc correctly (e.g. old windres).
     SetWindowTextW(hDlg, L"DeepSeek \u4F59\u989D\u63D2\u4EF6\u8BBE\u7F6E");
     SetDlgItemTextW(hDlg, IDC_API_SETTINGS_GROUP, L"API \u8BBE\u7F6E");
     SetDlgItemTextW(hDlg, IDC_REFRESH_SETTINGS_GROUP, L"\u5237\u65B0\u8BBE\u7F6E");
-
-    // Explicitly set font to Segoe UI to avoid garbling when windres
-    // misencodes the dialog template font name. Segoe UI is available
-    // on all Windows Vista+ systems and uses font linking for CJK.
-    m_hFont = CreateFontW(-9, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
-        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-        DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
-    if (m_hFont)
-    {
-        SendMessage(hDlg, WM_SETFONT, (WPARAM)m_hFont, MAKELPARAM(TRUE, 0));
-        // Apply to all child controls too
-        HWND hChild = GetWindow(hDlg, GW_CHILD);
-        while (hChild)
-        {
-            SendMessage(hChild, WM_SETFONT, (WPARAM)m_hFont, MAKELPARAM(TRUE, 0));
-            hChild = GetWindow(hChild, GW_HWNDNEXT);
-        }
-    }
 
     return TRUE;
 }
