@@ -2,8 +2,8 @@
 #include "DataManager.h"
 #include <string>
 #include <vector>
-#include <winhttp.h>
 #include <windows.h>
+#include <winhttp.h>
 
 PRAGMA_COMMENT_LIB("winhttp.lib")
 
@@ -27,10 +27,8 @@ void CDataManager::LoadConfig(const std::wstring& config_dir)
 {
     // Build config path from DLL path + ".ini"
     wchar_t path[MAX_PATH];
-    HMODULE hModule;
-    GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-        reinterpret_cast<LPCWSTR>(&CDataManager::LoadConfig), &hModule);
-    GetModuleFileNameW(hModule, path, MAX_PATH);
+    extern HMODULE g_hInstance;
+    GetModuleFileNameW(g_hInstance, path, MAX_PATH);
     std::wstring module_path = path;
     m_config_path = module_path;
     if (!config_dir.empty())
