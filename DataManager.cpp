@@ -89,21 +89,48 @@ void CDataManager::SetApiUrl(const std::wstring& url)
 
 bool CDataManager::HttpGetJson(const std::wstring& url, const std::wstring& token, std::string& response)
 {
-    // Parse URL to get host and path
-    URL_COMPONENTSW url_comp = { 0 };
-    url_comp.dwStructSize = sizeof(url_comp);
-    url_comp.dwHostNameLength = 1; // non-zero to force parsing
-    url_comp.dwUrlPathLength = 1;
-    url_comp.dwSchemeLength = 1;
+    // Parse URL manually (avoids WinHttpCrackUrlW which isn't available on all SDK versions)
+    // Expected format: scheme://host[:port]/path[?query]
+    std::wstring scheme, host_name, url_path, extra_info;
+    INTERNET_PORT port = INTERNET_DEFAULT_HTTP_PORT;
 
-    if (!WinHttpCrackUrlW(url.c_str(), (DWORD)url.length(), 0, &url_comp))
+    size_t scheme_pos = url.find(L"://");
+    if (scheme_pos == std::wstring::npos)
         return false;
 
-    std::wstring host_name(url_comp.lpszHostName, url_comp.dwHostNameLength);
-    std::wstring url_path(url_comp.lpszUrlPath, url_comp.dwUrlPathLength);
-    if (url_comp.dwExtraInfoLength > 0)
+    scheme = url.substr(0, scheme_pos);
+    size_t host_start = scheme_pos + 3;
+    size_t path_start = url.find(L'/', host_start);
+    if (path_start == std::wstring::npos)
     {
-        url_path += std::wstring(url_comp.lpszExtraInfo, url_comp.dwExtraInfoLength);
+        host_name = url.substr(host_start);
+        url_path = L"/";
+    }
+    else
+    {
+        std::wstring host_port = url.substr(host_start, path_start - host_start);
+        size_t port_colon = host_port.find(L':');
+        if (port_colon != std::wstring::npos)
+        {
+            host_name = host_port.substr(0, port_colon);
+            port = (INTERNET_PORT)_wtoi(host_port.substr(port_colon + 1).c_str());
+        }
+        else
+        {
+            host_name = host_port;
+        }
+        url_path = url.substr(path_start);
+    }
+
+    if (scheme == L"https")
+        port = INTERNET_DEFAULT_HTTPS_PORT;
+
+    // Separate query string from path
+    size_t query_start = url_path.find(L'?');
+    if (query_start != std::wstring::npos)
+    {
+        extra_info = url_path.substr(query_start);
+        url_path = url_path.substr(0, query_start);
     }
 
     BOOL bResults = FALSE;
@@ -115,7 +142,7 @@ bool CDataManager::HttpGetJson(const std::wstring& url, const std::wstring& toke
     if (!hSession)
         return false;
 
-    INTERNET_PORT port = (url_comp.nScheme == INTERNET_SCHEME_HTTPS) ? INTERNET_DEFAULT_HTTPS_PORT : INTERNET_DEFAULT_HTTP_PORT;
+    BOOL bSecure = (scheme == L"https");
 
     hConnect = WinHttpConnect(hSession, host_name.c_str(), port, 0);
     if (!hConnect)
@@ -124,7 +151,7 @@ bool CDataManager::HttpGetJson(const std::wstring& url, const std::wstring& toke
         return false;
     }
 
-    DWORD flags = (url_comp.nScheme == INTERNET_SCHEME_HTTPS) ? WINHTTP_FLAG_SECURE : 0;
+    DWORD flags = bSecure ? WINHTTP_FLAG_SECURE : 0;
     hRequest = WinHttpOpenRequest(hConnect, L"GET", url_path.c_str(), nullptr, nullptr, nullptr, flags);
     if (!hRequest)
     {
