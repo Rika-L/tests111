@@ -1,0 +1,128 @@
+name: Build DeepSeek Balance Plugin
+
+on:
+  push:
+    branches: [ "main", "master" ]
+    tags: [ "v*" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:   # 支持手动触发
+
+env:
+  PLUGIN_NAME: DeepSeekBalancePlugin
+
+jobs:
+  # ─── MSVC 编译（推荐） ─────────────────────────────────
+  build-msvc:
+    name: Build with MSVC
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: [x64, Win32]
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Add Platform toolset to PATH (MSVC)
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch == 'x64' && 'x64' || 'x86' }}
+
+      - name: Compile resource file
+        shell: cmd
+        run: rc /fo ${{ env.PLUGIN_NAME }}.res ${{ env.PLUGIN_NAME }}.rc
+
+      - name: Build DLL
+        shell: cmd
+        run: |
+          cl dllmain.cpp DataManager.cpp DeepSeekBalanceItem.cpp ^
+             DeepSeekBalancePlugin.cpp OptionsDlg.cpp ^
+             ${{ env.PLUGIN_NAME }}.res ^
+             /O2 /std:c++17 /D"_USRDLL" /D"WIN32" /D"_WINDOWS" ^
+             /D"_WIN32_WINNT=0x0600" /DWIN32_LEAN_AND_MEAN ^
+             /W3 /MD /LD ^
+             /link /DLL /OUT:${{ env.PLUGIN_NAME }}.dll ^
+             winhttp.lib comctl32.lib kernel32.lib user32.lib
+
+      - name: Upload DLL artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PLUGIN_NAME }}-${{ matrix.arch }}
+          path: ${{ env.PLUGIN_NAME }}.dll
+
+  # ─── MinGW 编译（备选） ────────────────────────────────
+  build-mingw:
+    name: Build with MinGW-w64
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install MinGW-w64
+        shell: powershell
+        run: choco install mingw --no-progress -y
+
+      - name: Add MinGW to PATH
+        shell: cmd
+        run: echo C:\tools\mingw64\bin>>%GITHUB_PATH%
+
+      - name: Build DLL with MinGW
+        shell: cmd
+        run: |
+          windres ${{ env.PLUGIN_NAME }}.rc -o ${{ env.PLUGIN_NAME }}.res
+          g++ -o ${{ env.PLUGIN_NAME }}.dll dllmain.cpp DataManager.cpp ^
+              DeepSeekBalanceItem.cpp DeepSeekBalancePlugin.cpp ^
+              OptionsDlg.cpp ${{ env.PLUGIN_NAME }}.res ^
+              -O2 -std=c++17 -shared -D_WIN32_WINNT=0x0600 ^
+              -DWIN32_LEAN_AND_MEAN -DBUILD_DLL ^
+              -static-libgcc -static-libstdc++ ^
+              -lwinhttp -lcomctl32 -lkernel32 -luser32 ^
+              -Wl,--out-implib,${{ env.PLUGIN_NAME }}.a
+
+      - name: Upload DLL artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PLUGIN_NAME }}-MinGW
+          path: ${{ env.PLUGIN_NAME }}.dll
+
+  # ─── 创建 Release（仅打 tag 时） ──────────────────────
+  release:
+    name: Create Release
+    needs: [build-msvc, build-mingw]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create release archive
+        shell: bash
+        run: |
+          mkdir -p release_assets
+          cp ${{ env.PLUGIN_NAME }}-x64/${{ env.PLUGIN_NAME }}.dll release_assets/${{ env.PLUGIN_NAME }}-x64.dll
+          cp ${{ env.PLUGIN_NAME }}-Win32/${{ env.PLUGIN_NAME }}.dll release_assets/${{ env.PLUGIN_NAME }}-Win32.dll
+          cp ${{ env.PLUGIN_NAME }}-MinGW/${{ env.PLUGIN_NAME }}.dll release_assets/${{ env.PLUGIN_NAME }}-MinGW.dll
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: DeepSeek Balance Plugin ${{ github.ref_name }}
+          body: |
+            自动构建的 DeepSeek Balance Plugin。
+
+            ### 文件说明
+            - `DeepSeekBalancePlugin-x64.dll` — MSVC 编译，64 位（推荐）
+            - `DeepSeekBalancePlugin-Win32.dll` — MSVC 编译，32 位
+            - `DeepSeekBalancePlugin-MinGW.dll` — MinGW 编译（备选）
+
+            ### 安装
+            将对应架构的 `.dll` 复制到 TrafficMonitor 的 `plugins/` 目录下，重启 TrafficMonitor 即可。
+          files: |
+            release_assets/DeepSeekBalancePlugin-x64.dll
+            release_assets/DeepSeekBalancePlugin-Win32.dll
+            release_assets/DeepSeekBalancePlugin-MinGW.dll

@@ -1,0 +1,149 @@
+#include "Platform.h"
+#include "OptionsDlg.h"
+#include "DataManager.h"
+#include "resource.h"
+#include <commctrl.h>
+#include <string>
+
+PRAGMA_COMMENT_LIB("comctl32.lib")
+
+// DLL instance handle from dllmain.cpp
+extern HMODULE g_hInstance;
+
+// Dialog procedure wrapper to route to class instance
+static COptionsDlg* g_pOptionsDlg = nullptr;
+
+COptionsDlg::COptionsDlg(HWND hParent)
+    : m_hParent(hParent)
+    , m_hDlg(nullptr)
+{
+}
+
+COptionsDlg::~COptionsDlg()
+{
+    if (g_pOptionsDlg == this)
+        g_pOptionsDlg = nullptr;
+}
+
+INT_PTR COptionsDlg::DoModal()
+{
+    g_pOptionsDlg = this;
+    return DialogBoxParamW(g_hInstance,
+        MAKEINTRESOURCEW(IDD_OPTIONS_DIALOG),
+        m_hParent, DlgProc, 0);
+}
+
+INT_PTR CALLBACK COptionsDlg::DlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    if (!g_pOptionsDlg)
+        return FALSE;
+    switch (msg)
+    {
+    case WM_INITDIALOG:
+        return g_pOptionsDlg->HandleInitDialog(hDlg);
+    case WM_COMMAND:
+        return g_pOptionsDlg->HandleCommand(hDlg, wParam, lParam);
+    }
+    return FALSE;
+}
+
+INT_PTR COptionsDlg::HandleInitDialog(HWND hDlg)
+{
+    m_hDlg = hDlg;
+    const auto& config = CDataManager::Instance().GetConfig();
+
+    // Set API Token
+    SetDlgItemTextW(hDlg, IDC_API_TOKEN_EDIT, config.api_token.c_str());
+
+    // Set API URL
+    SetDlgItemTextW(hDlg, IDC_API_URL_EDIT, config.api_url.c_str());
+
+    // Set refresh interval
+    SetDlgItemInt(hDlg, IDC_REFRESH_INTERVAL_EDIT, config.refresh_interval_sec / 60, FALSE);
+    // Spin control range
+    HWND hSpin = GetDlgItem(hDlg, IDC_REFRESH_INTERVAL_SPIN);
+    if (hSpin)
+    {
+        SendMessage(hSpin, UDM_SETRANGE, 0, MAKELPARAM(60, 1));
+        SendMessage(hSpin, UDM_SETPOS32, 0, config.refresh_interval_sec / 60);
+    }
+
+    return TRUE;
+}
+
+INT_PTR COptionsDlg::HandleCommand(HWND hDlg, WPARAM wParam, LPARAM lParam)
+{
+    switch (LOWORD(wParam))
+    {
+    case IDOK:
+    {
+        // Save settings
+        wchar_t buff[1024];
+
+        // API Token
+        GetDlgItemTextW(hDlg, IDC_API_TOKEN_EDIT, buff, 1024);
+        CDataManager::Instance().SetApiToken(buff);
+
+        // API URL
+        GetDlgItemTextW(hDlg, IDC_API_URL_EDIT, buff, 1024);
+        if (wcslen(buff) > 0)
+            CDataManager::Instance().SetApiUrl(buff);
+
+        // Refresh interval (in minutes, convert to seconds)
+        BOOL translated;
+        int minutes = GetDlgItemInt(hDlg, IDC_REFRESH_INTERVAL_EDIT, &translated, FALSE);
+        if (translated && minutes >= 1)
+            CDataManager::Instance().SetRefreshInterval(minutes * 60);
+
+        EndDialog(hDlg, IDOK);
+        return TRUE;
+    }
+
+    case IDC_TEST_CONNECTION_BTN:
+    {
+        // Test the connection with current settings
+        wchar_t buff[1024];
+        GetDlgItemTextW(hDlg, IDC_API_TOKEN_EDIT, buff, 1024);
+
+        if (wcslen(buff) == 0)
+        {
+            SetDlgItemTextW(hDlg, IDC_STATUS_TEXT, L"请输入 API Token");
+            return TRUE;
+        }
+
+        // Save current edit fields to temp config for testing
+        std::wstring saved_token = CDataManager::Instance().GetConfig().api_token;
+        CDataManager::Instance().SetApiToken(buff);
+
+        SetDlgItemTextW(hDlg, IDC_STATUS_TEXT, L"正在测试连接...");
+
+        bool success = CDataManager::Instance().RefreshBalance();
+
+        if (success)
+        {
+            const auto& data = CDataManager::Instance().GetBalanceData();
+            if (data.has_data)
+            {
+                std::wstring msg = L"连接成功!\n余额: " +
+                    data.balance_info.total_balance + L" " +
+                    data.balance_info.currency;
+                SetDlgItemTextW(hDlg, IDC_STATUS_TEXT, msg.c_str());
+            }
+            else
+            {
+                SetDlgItemTextW(hDlg, IDC_STATUS_TEXT, L"连接成功，但解析响应失败");
+            }
+        }
+        else
+        {
+            SetDlgItemTextW(hDlg, IDC_STATUS_TEXT, L"连接失败，请检查 Token 和网络连接");
+        }
+        return TRUE;
+    }
+
+    case IDCANCEL:
+        EndDialog(hDlg, IDCANCEL);
+        return TRUE;
+    }
+    return FALSE;
+}

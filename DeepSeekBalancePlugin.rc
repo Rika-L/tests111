@@ -1,0 +1,123 @@
+// DeepSeek Balance Plugin - Resource Script
+#include "resource.h"
+#include "winres.h"
+
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+#pragma code_page(936)
+
+/////////////////////////////////////////////////////////////////////////////
+// Dialog - Options
+//
+
+IDD_OPTIONS_DIALOG DIALOGEX 0, 0, 280, 170
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "DeepSeek 余额插件设置"
+FONT 9, "Microsoft YaHei", 400, 0, 0x0
+BEGIN
+    GROUPBOX        "API 设置", IDC_STATIC, 7, 7, 266, 78, 0, WS_EX_TRANSPARENT
+    LTEXT           "API Token:", IDC_STATIC, 15, 20, 45, 10
+    EDITTEXT        IDC_API_TOKEN_EDIT, 65, 18, 200, 14, ES_PASSWORD | ES_AUTOHSCROLL
+
+    LTEXT           "API URL:", IDC_STATIC, 15, 42, 40, 10
+    EDITTEXT        IDC_API_URL_EDIT, 65, 40, 200, 14, ES_AUTOHSCROLL
+
+    PUSHBUTTON      "测试连接", IDC_TEST_CONNECTION_BTN, 200, 60, 65, 18
+
+    GROUPBOX        "刷新设置", IDC_STATIC, 7, 90, 266, 40
+    LTEXT           "刷新间隔（分钟）:", IDC_STATIC, 15, 106, 80, 10
+    EDITTEXT        IDC_REFRESH_INTERVAL_EDIT, 100, 104, 35, 14, ES_NUMBER
+    CONTROL         "", IDC_REFRESH_INTERVAL_SPIN, "msctls_updown32", UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS, 0, 0, 0, 0
+
+    LTEXT           "", IDC_STATUS_TEXT, 15, 135, 250, 20
+
+    DEFPUSHBUTTON   "确定", IDOK, 130, 150, 50, 14
+    PUSHBUTTON      "取消", IDCANCEL, 200, 150, 50, 14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,0
+ PRODUCTVERSION 1,0,0,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080404b0"
+        BEGIN
+            VALUE "CompanyName", ""
+            VALUE "FileDescription", "DeepSeek Balance Plugin for TrafficMonitor"
+            VALUE "FileVersion", "1.0.0.0"
+            VALUE "InternalName", "DeepSeekBalancePlugin.dll"
+            VALUE "LegalCopyright", ""
+            VALUE "OriginalFilename", "DeepSeekBalancePlugin.dll"
+            VALUE "ProductName", "DeepSeek Balance Plugin"
+            VALUE "ProductVersion", "1.0.0.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x804, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_PLUGIN_NAME         "DeepSeek Balance"
+    IDS_PLUGIN_DESCRIPTION  "显示 DeepSeek API 账户余额"
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English resources
+//
+
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+IDD_OPTIONS_DIALOG DIALOGEX 0, 0, 280, 170
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "DeepSeek Balance Plugin Settings"
+FONT 9, "Segoe UI", 400, 0, 0x0
+BEGIN
+    GROUPBOX        "API Settings", IDC_STATIC, 7, 7, 266, 78
+    LTEXT           "API Token:", IDC_STATIC, 15, 20, 45, 10
+    EDITTEXT        IDC_API_TOKEN_EDIT, 65, 18, 200, 14, ES_PASSWORD | ES_AUTOHSCROLL
+
+    LTEXT           "API URL:", IDC_STATIC, 15, 42, 40, 10
+    EDITTEXT        IDC_API_URL_EDIT, 65, 40, 200, 14, ES_AUTOHSCROLL
+
+    PUSHBUTTON      "Test Connection", IDC_TEST_CONNECTION_BTN, 200, 60, 65, 18
+
+    GROUPBOX        "Refresh Settings", IDC_STATIC, 7, 90, 266, 40
+    LTEXT           "Interval (minutes):", IDC_STATIC, 15, 106, 85, 10
+    EDITTEXT        IDC_REFRESH_INTERVAL_EDIT, 105, 104, 35, 14, ES_NUMBER
+    CONTROL         "", IDC_REFRESH_INTERVAL_SPIN, "msctls_updown32", UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS, 0, 0, 0, 0
+
+    LTEXT           "", IDC_STATUS_TEXT, 15, 135, 250, 20
+
+    DEFPUSHBUTTON   "OK", IDOK, 130, 150, 50, 14
+    PUSHBUTTON      "Cancel", IDCANCEL, 200, 150, 50, 14
+END
+
+STRINGTABLE
+BEGIN
+    IDS_PLUGIN_NAME         "DeepSeek Balance"
+    IDS_PLUGIN_DESCRIPTION  "Display DeepSeek API account balance"
+END
