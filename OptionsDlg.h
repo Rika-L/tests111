@@ -13,7 +13,9 @@ private:
     static INT_PTR CALLBACK DlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam);
     INT_PTR HandleInitDialog(HWND hDlg);
     INT_PTR HandleCommand(HWND hDlg, WPARAM wParam, LPARAM lParam);
+    INT_PTR HandleDestroyDialog(HWND hDlg);
 
     HWND m_hParent;
     HWND m_hDlg;
+    HFONT m_hFont;
 };

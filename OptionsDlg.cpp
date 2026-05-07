@@ -16,6 +16,7 @@ static COptionsDlg* g_pOptionsDlg = nullptr;
 COptionsDlg::COptionsDlg(HWND hParent)
     : m_hParent(hParent)
     , m_hDlg(nullptr)
+    , m_hFont(nullptr)
 {
 }
 
@@ -23,13 +24,15 @@ COptionsDlg::~COptionsDlg()
 {
     if (g_pOptionsDlg == this)
         g_pOptionsDlg = nullptr;
+    if (m_hFont)
+        DeleteObject(m_hFont);
 }
 
 INT_PTR COptionsDlg::DoModal()
 {
     g_pOptionsDlg = this;
-    return DialogBoxParamA(g_hInstance,
-        MAKEINTRESOURCEA(IDD_OPTIONS_DIALOG),
+    return DialogBoxParamW(g_hInstance,
+        MAKEINTRESOURCEW(IDD_OPTIONS_DIALOG),
         m_hParent, DlgProc, 0);
 }
 
@@ -43,6 +46,8 @@ INT_PTR CALLBACK COptionsDlg::DlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM
         return g_pOptionsDlg->HandleInitDialog(hDlg);
     case WM_COMMAND:
         return g_pOptionsDlg->HandleCommand(hDlg, wParam, lParam);
+    case WM_DESTROY:
+        return g_pOptionsDlg->HandleDestroyDialog(hDlg);
     }
     return FALSE;
 }
@@ -72,6 +77,24 @@ INT_PTR COptionsDlg::HandleInitDialog(HWND hDlg)
     SetWindowTextW(hDlg, L"DeepSeek \u4F59\u989D\u63D2\u4EF6\u8BBE\u7F6E");
     SetDlgItemTextW(hDlg, IDC_API_SETTINGS_GROUP, L"API \u8BBE\u7F6E");
     SetDlgItemTextW(hDlg, IDC_REFRESH_SETTINGS_GROUP, L"\u5237\u65B0\u8BBE\u7F6E");
+
+    // Explicitly set font to Segoe UI to avoid garbling when windres
+    // misencodes the dialog template font name. Segoe UI is available
+    // on all Windows Vista+ systems and uses font linking for CJK.
+    m_hFont = CreateFontW(-9, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+        DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
+    if (m_hFont)
+    {
+        SendMessage(hDlg, WM_SETFONT, (WPARAM)m_hFont, MAKELPARAM(TRUE, 0));
+        // Apply to all child controls too
+        HWND hChild = GetWindow(hDlg, GW_CHILD);
+        while (hChild)
+        {
+            SendMessage(hChild, WM_SETFONT, (WPARAM)m_hFont, MAKELPARAM(TRUE, 0));
+            hChild = GetWindow(hChild, GW_HWNDNEXT);
+        }
+    }
 
     return TRUE;
 }
@@ -149,6 +172,16 @@ INT_PTR COptionsDlg::HandleCommand(HWND hDlg, WPARAM wParam, LPARAM lParam)
     case IDCANCEL:
         EndDialog(hDlg, IDCANCEL);
         return TRUE;
+    }
+    return FALSE;
+}
+
+INT_PTR COptionsDlg::HandleDestroyDialog(HWND /*hDlg*/)
+{
+    if (m_hFont)
+    {
+        DeleteObject(m_hFont);
+        m_hFont = nullptr;
     }
     return FALSE;
 }
