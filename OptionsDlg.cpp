@@ -68,6 +68,11 @@ INT_PTR COptionsDlg::HandleInitDialog(HWND hDlg)
         SendMessage(hSpin, UDM_SETPOS32, 0, config.refresh_interval_sec / 60);
     }
 
+    // Set Chinese UI text (text in .rc is ASCII to avoid encoding issues)
+    SetWindowTextW(hDlg, L"DeepSeek \u4F59\u989D\u63D2\u4EF6\u8BBE\u7F6E");
+    SetDlgItemTextW(hDlg, IDC_API_SETTINGS_GROUP, L"API \u8BBE\u7F6E");
+    SetDlgItemTextW(hDlg, IDC_REFRESH_SETTINGS_GROUP, L"\u5237\u65B0\u8BBE\u7F6E");
+
     return TRUE;
 }
 

@@ -15,5 +15,9 @@
 #define IDC_REFRESH_INTERVAL_LABEL      207
 #define IDC_API_URL_LABEL               208
 
+// Group boxes
+#define IDC_API_SETTINGS_GROUP          209
+#define IDC_REFRESH_SETTINGS_GROUP      210
+
 // Icons
 #define IDI_PLUGIN_ICON                 300
