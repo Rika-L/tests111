@@ -28,8 +28,8 @@ COptionsDlg::~COptionsDlg()
 INT_PTR COptionsDlg::DoModal()
 {
     g_pOptionsDlg = this;
-    return DialogBoxParamW(g_hInstance,
-        MAKEINTRESOURCEW(IDD_OPTIONS_DIALOG),
+    return DialogBoxParamA(g_hInstance,
+        MAKEINTRESOURCEA(IDD_OPTIONS_DIALOG),
         m_hParent, DlgProc, 0);
 }
 

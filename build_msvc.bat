@@ -24,7 +24,7 @@ REM Source files
 set SRCS=dllmain.cpp DataManager.cpp DeepSeekBalanceItem.cpp DeepSeekBalancePlugin.cpp OptionsDlg.cpp
 
 REM Compiler flags
-set CFLAGS=/O2 /std:c++17 /D"_USRDLL" /D"WIN32" /D"_WINDOWS" /D"_WIN32_WINNT=0x0600" /DWIN32_LEAN_AND_MEAN /W3 /MD /LD
+set CFLAGS=/O2 /std:c++17 /utf-8 /D"_USRDLL" /D"WIN32" /D"_WINDOWS" /D"_WIN32_WINNT=0x0600" /DWIN32_LEAN_AND_MEAN /W3 /MD /LD
 
 REM Linker libraries
 set LIBS=winhttp.lib comctl32.lib kernel32.lib user32.lib

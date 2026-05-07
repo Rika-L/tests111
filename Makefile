@@ -29,7 +29,7 @@ RES_OBJ = DeepSeekBalancePlugin.o
 endif
 
 # Compiler flags
-CXXFLAGS = -O2 -std=c++17 -DBUILD_DLL
+CXXFLAGS = -O2 -std=c++17 -DBUILD_DLL -finput-charset=utf-8
 CXXFLAGS += -D_WIN32_WINNT=0x0600 -DWIN32_LEAN_AND_MEAN
 CXXFLAGS += -Wall -Wextra -Wno-unused-parameter
 CXXFLAGS += -static-libgcc -static-libstdc++
