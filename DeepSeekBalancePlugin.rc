@@ -1,4 +1,4 @@
-// DeepSeek Balance Plugin - Resource Script
+﻿// DeepSeek Balance Plugin - Resource Script
 #include "resource.h"
 #include "winres.h"
 
