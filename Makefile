@@ -20,7 +20,13 @@ endif
 SRCS    = dllmain.cpp DataManager.cpp DeepSeekBalanceItem.cpp \
           DeepSeekBalancePlugin.cpp OptionsDlg.cpp
 OBJS    = $(SRCS:.cpp=.o)
+
+# Resource object: MSVC uses .res, MinGW/GCC uses .o
+ifdef MSVC
 RES_OBJ = DeepSeekBalancePlugin.res
+else
+RES_OBJ = DeepSeekBalancePlugin.o
+endif
 
 # Compiler flags
 CXXFLAGS = -O2 -std=c++17 -DBUILD_DLL
@@ -55,7 +61,7 @@ else
         $(CC) -c $< $(CXXFLAGS)
 
     .rc.o:
-        $(WINDRES) $< -o $@
+        $(WINDRES) $< -O coff -o $@
 
     $(TARGET): $(OBJS) $(RES_OBJ)
         $(CC) -o $@ $(OBJS) $(RES_OBJ) $(LDFLAGS) $(LDLIBS)

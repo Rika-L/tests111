@@ -71,10 +71,10 @@ jobs:
       - name: Build DLL with MinGW
         shell: cmd
         run: |
-          windres ${{ env.PLUGIN_NAME }}.rc -o ${{ env.PLUGIN_NAME }}.res
+          windres ${{ env.PLUGIN_NAME }}.rc -O coff -o ${{ env.PLUGIN_NAME }}_res.o
           g++ -o ${{ env.PLUGIN_NAME }}.dll dllmain.cpp DataManager.cpp ^
               DeepSeekBalanceItem.cpp DeepSeekBalancePlugin.cpp ^
-              OptionsDlg.cpp ${{ env.PLUGIN_NAME }}.res ^
+              OptionsDlg.cpp ${{ env.PLUGIN_NAME }}_res.o ^
               -O2 -std=c++17 -shared -D_WIN32_WINNT=0x0600 ^
               -DWIN32_LEAN_AND_MEAN -DBUILD_DLL ^
               -static-libgcc -static-libstdc++ ^
