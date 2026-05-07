@@ -34,7 +34,7 @@ inline int StringPrintf(wchar_t (&dest)[N], const wchar_t* format, ...)
 
 // MSVC uses #pragma comment(lib, ...); MinGW uses -l linker flag
 #ifdef _MSC_VER
-#define PRAGMA_COMMENT_LIB(lib)  __pragma(comment(lib, lib))
+#define PRAGMA_COMMENT_LIB(libname)  __pragma(comment(lib, libname))
 #else
-#define PRAGMA_COMMENT_LIB(lib)
+#define PRAGMA_COMMENT_LIB(libname)
 #endif
